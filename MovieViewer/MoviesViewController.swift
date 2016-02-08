@@ -10,7 +10,7 @@ import UIKit
 import AFNetworking
 import MBProgressHUD
 
-class MoviesViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, UISearchBarDelegate {
+class MoviesViewController: UIViewController, /*UITableViewDataSource, UITableViewDelegate,*/ UISearchBarDelegate, UICollectionViewDelegate {
 
     @IBOutlet weak var tableView: UITableView!
     @IBOutlet weak var collectionView: UICollectionView!
@@ -19,6 +19,7 @@ class MoviesViewController: UIViewController, UITableViewDataSource, UITableView
     
     var movies: [NSDictionary]?
     var filteredMovies: [NSDictionary]?
+    var endpoint : String!
     
     let refreshControl = UIRefreshControl()
     
@@ -27,66 +28,20 @@ class MoviesViewController: UIViewController, UITableViewDataSource, UITableView
         super.viewDidLoad()
         //tableView.dataSource = self
         //tableView.delegate = self
-        tableView.hidden = true
+        //tableView.hidden = true
         collectionView.dataSource = self
+        collectionView.delegate = self
         movieSearchBar!.delegate = self
-
-    
-        
+        collectionView.allowsSelection = true
         
         refreshControl.addTarget(self, action: "refreshControlAction:", forControlEvents: UIControlEvents.ValueChanged)
-        tableView.insertSubview(refreshControl, atIndex: 0)
+        //tableView.insertSubview(refreshControl, atIndex: 0)
         collectionView.insertSubview(refreshControl, atIndex: 0)
         let hud = MBProgressHUD.showHUDAddedTo(self.view, animated: true)
         hud.color = UIColor.grayColor()
         
-        
-        /*let apiKey = "a07e22bc18f5cb106bfe4cc1f83ad8ed"
-        let url = NSURL(string: "https://api.themoviedb.org/3/movie/now_playing?api_key=\(apiKey)")
-
-        let request = NSURLRequest(
-            URL: url!,
-            cachePolicy: NSURLRequestCachePolicy.ReloadIgnoringLocalCacheData,
-            timeoutInterval: 10)
-        
-        let session = NSURLSession(
-            configuration: NSURLSessionConfiguration.defaultSessionConfiguration(),
-            delegate: nil,
-            delegateQueue: NSOperationQueue.mainQueue()
-        )
-        
-        
-        let task: NSURLSessionDataTask = session.dataTaskWithRequest(request,
-            completionHandler: { (dataOrNil, response, error) in
-                if let data = dataOrNil {
-                    if let responseDictionary = try! NSJSONSerialization.JSONObjectWithData(
-                        data, options:[]) as? NSDictionary {
-                            print("response: \(responseDictionary)")
-                            
-                            self.movies = (responseDictionary["results"] as! [NSDictionary])
-                            
-                            MBProgressHUD.hideHUDForView(self.view, animated: true)
-
-                            
-                            self.tableView.reloadData()
-                            self.collectionView.reloadData()
-                    }
-                }
-                 if error != nil{
-                    if error!.code == NSURLErrorNotConnectedToInternet {
-                        self.errorView.hidden = false
-                    }
-
-                }
-        })
-        task.resume()
-        */
-        //print(movieSearchBar?.delegate = self)
 
         refreshMovies()
-        
-        
-        
         
         
         // Do any additional setup after loading the view.
@@ -96,107 +51,29 @@ class MoviesViewController: UIViewController, UITableViewDataSource, UITableView
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
     }
-    func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        
-        if let filteredMovies = filteredMovies{
-            return filteredMovies.count
-        }
-        else{
-            return 0
-        }
-        
-    }
-    
-    func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
-        
-        let cell = tableView.dequeueReusableCellWithIdentifier("MovieCell", forIndexPath: indexPath) as! MovieCell
-        
-        let movie = movies![indexPath.row]
-        let title = movie["title"] as! String
-        let overview = movie["overview"] as! String
-        let posterPath = movie["poster_path"] as? String
 
-        cell.titleLabel.text = title
-        cell.overviewLabel.text = overview
-        
-        
-        if let posterPath = posterPath{
-            let baseUrl = "http://image.tmdb.org/t/p/w500"
-            let imageUrl = NSURL(string: baseUrl + posterPath)
-            
-            
-            let request = NSURLRequest(URL: imageUrl!)
-            let placeholderImage = UIImage(named: "MovieHolder")
-            if(cell.posterView?.image == nil){
-            cell.posterView.setImageWithURLRequest(request, placeholderImage: placeholderImage, success: { (request, response, imageData) -> Void in
-                UIView.transitionWithView(cell.posterView, duration: 0.5, options: UIViewAnimationOptions.TransitionCrossDissolve, animations: { cell.posterView.image = imageData }, completion: nil   )
-                }, failure: nil)
-            }
-            else{
-                cell.posterView.setImageWithURL(imageUrl!)
-            }
-            
-        }
-        else{
-            //print(movie["title"] as! String)
-            cell.posterView.image = nil
-        }
-        
-        
-        
-        //print("row \(indexPath.row)")
-        return cell
-        
-    }
     
     func refreshControlAction(refreshControl: UIRefreshControl) {
         
         refreshMovies()
-        /*let apiKey = "a07e22bc18f5cb106bfe4cc1f83ad8ed"
-        let url = NSURL(string: "https://api.themoviedb.org/3/movie/now_playing?api_key=\(apiKey)")
-        
-        let request = NSURLRequest(
-            URL: url!,
-            cachePolicy: NSURLRequestCachePolicy.ReloadIgnoringLocalCacheData,
-            timeoutInterval: 10)
-        
-        let session = NSURLSession(
-            configuration: NSURLSessionConfiguration.defaultSessionConfiguration(),
-            delegate: nil,
-            delegateQueue: NSOperationQueue.mainQueue()
-        )
-        
-        
-        let task: NSURLSessionDataTask = session.dataTaskWithRequest(request,
-            completionHandler: { (dataOrNil, response, error) in
-                if let data = dataOrNil {
-                    if let responseDictionary = try! NSJSONSerialization.JSONObjectWithData(
-                        data, options:[]) as? NSDictionary {
-                            print("response: \(responseDictionary)")
-                            
-                            self.movies = (responseDictionary["results"] as! [NSDictionary])
-                            
-                            MBProgressHUD.hideHUDForView(self.view, animated: true)
-                            refreshControl.endRefreshing()
-                            
-                            self.tableView.reloadData()
-                            self.collectionView.reloadData()
-                    }
-                }
-        });
-        task.resume()*/
+    
     }
     
 
-    /*
+    
     // MARK: - Navigation
 
     // In a storyboard-based application, you will often want to do a little preparation before navigation
     override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
-        // Get the new view controller using segue.destinationViewController.
-        // Pass the selected object to the new view controller.
+        print("true")
+        
+        let cell = sender as! UICollectionViewCell
+        let indexPath = collectionView.indexPathForCell(cell)
+        let movie = filteredMovies![indexPath!.row]
+        let detailViewController = segue.destinationViewController as! DetailViewController
+        detailViewController.movie = movie
     }
-    */
+    
 
     @IBAction func onMoviesTap(sender: AnyObject) {
         self.view.endEditing(true)
@@ -210,7 +87,7 @@ class MoviesViewController: UIViewController, UITableViewDataSource, UITableView
     func refreshMovies(){
         
         let apiKey = "a07e22bc18f5cb106bfe4cc1f83ad8ed"
-        let url = NSURL(string: "https://api.themoviedb.org/3/movie/now_playing?api_key=\(apiKey)")
+        let url = NSURL(string: "https://api.themoviedb.org/3/movie/\(endpoint)?api_key=\(apiKey)")
         
         let request = NSURLRequest(
             URL: url!,
@@ -239,13 +116,9 @@ class MoviesViewController: UIViewController, UITableViewDataSource, UITableView
                             self.refreshControl.endRefreshing()
                             self.errorView.hidden = true
                             
-                            self.tableView.reloadData()
                             self.collectionView.reloadData()
                     }
-                   /* else if(!self.refreshControl.refreshing){
-                        self.errorView.hidden = false
 
-                    }*/
                 }
                 if error != nil{
                     if error!.code == NSURLErrorNotConnectedToInternet {
@@ -281,7 +154,11 @@ class MoviesViewController: UIViewController, UITableViewDataSource, UITableView
     
     
 
-
+    func collectionView(collection: UICollectionView, selectedItemIndex: NSIndexPath)
+    {
+        print("true")
+        self.performSegueWithIdentifier("showDetail", sender: self)
+    }
     
     
     
@@ -298,18 +175,20 @@ extension MoviesViewController: UICollectionViewDataSource {
     }
     
     func collectionView(collectionView: UICollectionView, cellForItemAtIndexPath indexPath: NSIndexPath) -> UICollectionViewCell {
+        
         let cell = collectionView.dequeueReusableCellWithReuseIdentifier("MovieCollectionCell", forIndexPath: indexPath) as! MovieCollectionCell
         cell.backgroundColor = UIColor.blackColor()
         
-
-        
-        let movie = filteredMovies![indexPath.item]
         //let title = movie["title"] as! String
         //let overview = movie["overview"] as! String
-        let posterPath = movie["poster_path"] as? String
-        
         //cell.titleLabel.text = title
         //cell.overviewLabel.text = overview
+        
+        
+        
+        let movie = filteredMovies![indexPath.item]
+        let posterPath = movie["poster_path"] as? String
+
         
         
         if let posterPath = posterPath{
@@ -330,23 +209,11 @@ extension MoviesViewController: UICollectionViewDataSource {
             
         }
         else{
-            //print(movie["title"] as! String)
             cell.posterCollectionView.image = nil
         }
-        
-        
-        
-        //print("row \(indexPath.row)")
-        
+    
         return cell
     }
-    
-    
-    
-    
-    
-    
-    
     
 }
 

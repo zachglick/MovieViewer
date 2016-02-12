@@ -16,6 +16,7 @@ class MoviesViewController: UIViewController, /*UITableViewDataSource, UITableVi
     @IBOutlet weak var collectionView: UICollectionView!
     @IBOutlet weak var errorView: UIView!
     @IBOutlet weak var movieSearchBar: UISearchBar!
+    @IBOutlet var onTap: UITapGestureRecognizer!
     
     var movies: [NSDictionary]?
     var filteredMovies: [NSDictionary]?
@@ -75,12 +76,16 @@ class MoviesViewController: UIViewController, /*UITableViewDataSource, UITableVi
     }
     
 
-    @IBAction func onMoviesTap(sender: AnyObject) {
-        self.view.endEditing(true)
+    /*@IBAction func onTap(sender: AnyObject) {
+        //self.view.endEditing(true)
         if(self.errorView.hidden == false){
+            print("visible")
             refreshMovies()
         }
-    }
+        else{
+            print("hidden")
+        }
+    }*/
     
     
     
@@ -112,9 +117,9 @@ class MoviesViewController: UIViewController, /*UITableViewDataSource, UITableVi
                             self.filteredMovies = self.movies
                             
                             MBProgressHUD.hideHUDForView(self.view, animated: true)
-                            
-                            self.refreshControl.endRefreshing()
                             self.errorView.hidden = true
+ 
+                            self.refreshControl.endRefreshing()
                             
                             self.collectionView.reloadData()
                     }
@@ -156,13 +161,32 @@ class MoviesViewController: UIViewController, /*UITableViewDataSource, UITableVi
 
     func collectionView(collection: UICollectionView, selectedItemIndex: NSIndexPath)
     {
-        print("true")
         self.performSegueWithIdentifier("showDetail", sender: self)
     }
     
     
+    func collectionView(collection: UICollectionView, didSelectItemAtIndexPath indexPath: NSIndexPath) {
+        for indexPath in collectionView.indexPathsForVisibleItems() ?? [] {
+            
+            collectionView.cellForItemAtIndexPath(indexPath)!.alpha = 1.0
+        }
+        collectionView.cellForItemAtIndexPath(indexPath)!.backgroundColor = UIColor.grayColor()
+        collectionView.cellForItemAtIndexPath(indexPath)!.alpha = 0.5
+
+    }
+
+
+ 
+
+    
+    
+    
+    
+    
+    
     
 }
+
 
 extension MoviesViewController: UICollectionViewDataSource {
     func collectionView(collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
@@ -173,6 +197,11 @@ extension MoviesViewController: UICollectionViewDataSource {
             return 0
         }
     }
+    
+    
+
+    
+
     
     func collectionView(collectionView: UICollectionView, cellForItemAtIndexPath indexPath: NSIndexPath) -> UICollectionViewCell {
         
@@ -193,15 +222,22 @@ extension MoviesViewController: UICollectionViewDataSource {
         
         if let posterPath = posterPath{
             let baseUrl = "http://image.tmdb.org/t/p/w500"
+
             let imageUrl = NSURL(string: baseUrl + posterPath)
+
             
             
-            let request = NSURLRequest(URL: imageUrl!)
+            let imageRequest = NSURLRequest(URL: imageUrl!)
+
             let placeholderImage = UIImage(named: "MovieHolder")
             if(cell.posterCollectionView?.image == nil){
-                cell.posterCollectionView.setImageWithURLRequest(request, placeholderImage: placeholderImage, success: { (request, response, imageData) -> Void in
+                
+                cell.posterCollectionView.setImageWithURLRequest(imageRequest, placeholderImage: placeholderImage, success: { (request, response, imageData) -> Void in
                     UIView.transitionWithView(cell.posterCollectionView, duration: 0.5, options: UIViewAnimationOptions.TransitionCrossDissolve, animations: { cell.posterCollectionView.image = imageData }, completion: nil   )
                     }, failure: nil)
+                
+                
+                
             }
             else{
                 cell.posterCollectionView.setImageWithURL(imageUrl!)
